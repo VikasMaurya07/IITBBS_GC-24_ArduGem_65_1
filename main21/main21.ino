@@ -25,7 +25,7 @@
 #define WHITE   0xFFFF
 
 #define BALL_RADIUS 2
-#define BALL_SPEED 1.5
+#define BALL_SPEED 5
 
 // Initialize the display
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
@@ -55,7 +55,7 @@ int score = 0;
 
 // Function to draw a triangle (bird)
 void drawBird(int x, int y) {
-  tft.fillTriangle(x, y, x-5, y+10, x+5, y+10, ST7735_WHITE); // Coordinates for the triangle vertices
+  tft.fillTriangle(x, y, x+7, y+5, x+7, y-5, ST7735_WHITE); // Coordinates for the triangle vertices
 }
 
 bool ballReleased = false;
