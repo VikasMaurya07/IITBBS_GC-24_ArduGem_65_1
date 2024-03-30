@@ -86,7 +86,7 @@ FlyingObject* createRandomObject(int layer, int id) {
     case 1:
     case 19: 
     return new Airplane(startX, startY, id);
-    case 7: return new Health(startX, startY, id);
+    case 0: return new Health(startX, startY, id);
   }
   return nullptr; // In case of an unexpected value
 }

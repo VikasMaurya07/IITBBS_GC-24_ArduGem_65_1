@@ -24,9 +24,56 @@
 #define JOY_BTN 8
 #define UP_BTN 2
 
-// Define the ball properties
 #define BALL_RADIUS 2
-#define BALL_SPEED 1.0
+#define BALL_SPEED 1.5
+
+class GreenBall {
+public:
+  float x, y; // Position
+  float radius = 2; // Radius of the ball
+  float speed = 1.5; // Speed of the ball
+  float directionX, directionY; // Direction of movement
+  bool released; // Whether the ball has been released
+
+  GreenBall(float startX, float startY, float r, float s) : x(startX), y(startY), radius(r), speed(s), released(false) {}
+
+    void clear(Adafruit_ST7735 &tft) {
+    tft.fillCircle(x, y, radius, ST7735_BLACK);
+  }
+
+  // Function to draw the green ball
+  void draw(Adafruit_ST7735 &tft) {
+    tft.fillCircle(x, y, radius, ST7735_GREEN);
+  }
+
+  // Function to update the position of the green ball
+  void update() {
+    if (released) {
+      x += directionX * speed;
+      y += directionY * speed;
+    }
+  }
+
+  // Function to release the green ball
+  void release(float dirX, float dirY) {
+    directionX = dirX;
+    directionY = dirY;
+    released = true;
+  }
+
+  // Function to check if the ball is out of bounds
+  bool isOutOfBounds() {
+    return (x < 5 || x > 125 || y < 5 || y > 125);
+  }
+
+  // Function to reset the green ball
+  void reset(float startX, float startY) {
+    x = startX;
+    y = startY;
+    released = false;
+  }
+};
+
 
 
 // Initialize the display
@@ -42,14 +89,7 @@ const int triangleVertices[3][2] = {
 // Center of the screen
 int centerX = 64;
 int centerY = 80;
-float ballX, ballY;
-float ballXDirection, ballYDirection;
-
-void drawBall(int x, int y) {
-  tft.fillCircle(x, y, BALL_RADIUS, ST7735_GREEN);
-}
-
-bool ballReleased = false;
+GreenBall greenBall(centerX, centerY, BALL_RADIUS, BALL_SPEED);
 
 // Variables to store the previous vertices of the triangle
 int prevVertices[3][2];
@@ -66,7 +106,6 @@ void setup() {
  // Set the joystick button as an input
   pinMode(JOY_BTN, INPUT_PULLUP);
   pinMode(UP_BTN, INPUT_PULLUP);
-  drawBall(centerX,centerY);
 }
 
 int prevX = centerX;
@@ -123,43 +162,18 @@ void loop() {
     prevVertices[i][0] = rotatedVertices[i][0];
     prevVertices[i][1] = rotatedVertices[i][1];
   }
-
-if (digitalRead(JOY_BTN) == LOW||digitalRead(UP_BTN) == LOW) { // Assuming the button is active low
-    // If the button is pressed and the ball hasn't been released yet
-    if (!ballReleased) {
-      // Calculate the ball's trajectory based on the pointer's angle
-      ballXDirection = cos(angle-PI/2.0) * BALL_SPEED;
-      ballYDirection = sin(angle-PI/2.0) * BALL_SPEED;
-
-      // Release the ball
-      ballReleased = true;
+   greenBall.clear(tft);
+ greenBall.update();
+  if (digitalRead(JOY_BTN) == LOW || digitalRead(UP_BTN) == LOW) {
+    if (!greenBall.released) {
+      float angle = atan2(yDirection, xDirection);
+      greenBall.release(cos(angle - PI / 2.0), sin(angle - PI / 2.0));
     }
   }
-
-  // If the ball has been released, update its position
-  if (ballReleased) {
-    // Clear the previous ball position
-    tft.fillCircle(ballX, ballY, BALL_RADIUS, ST7735_BLACK);
-    // Update the ball's position
-    ballX += ballXDirection;
-    ballY += ballYDirection;
-
-    // Draw the ball
-    drawBall(ballX, ballY);
-
-    // Check if the ball has reached the edge of the screen
-    if (ballX < 5 || ballX > 125 || ballY < 5 || ballY > 125) {
-      tft.fillCircle(ballX, ballY, BALL_RADIUS, ST7735_BLACK);
-      // Reset the ball's position to the center of the pointer
-      ballX = centerX;
-      ballY = centerY;
-      // Reset the ball's state
-      ballReleased = false;
-      drawBall(ballX, ballY);
-    }
+  if (greenBall.isOutOfBounds()) {
+    greenBall.reset(centerX, centerY);
   }
-
-  
+  greenBall.draw(tft);
   // Add a small delay to control the speed of rotation
   delay(10);
 }

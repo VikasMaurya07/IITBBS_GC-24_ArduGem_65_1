@@ -25,7 +25,7 @@
 #define WHITE   0xFFFF
 
 #define BALL_RADIUS 2
-#define BALL_SPEED 5
+#define BALL_SPEED 1.5
 
 // Initialize the display
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
@@ -33,9 +33,151 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 float playerX = 64;
 float playerY = 120;
 float playerSize = 11.6;
-int moveStep = 1; // Number of pixels the player moves with each button press
-float ballX, ballY;
-float ballXDirection, ballYDirection;
+int moveStep = 1; 
+
+class GreenBall {
+public:
+  float x, y; // Position
+  float radius = 2; // Radius of the ball
+  float speed = 1.5; // Speed of the ball
+  float directionX, directionY; // Direction of movement
+  bool released; // Whether the ball has been released
+
+  GreenBall(float startX, float startY, float r, float s) : x(startX), y(startY), radius(r), speed(s), released(false) {}
+
+    void clear(Adafruit_ST7735 &tft) {
+      if(released) {
+    tft.fillCircle(x, y, radius, ST7735_BLACK);
+    tft.fillCircle(playerX, playerY, playerSize, ST7735_BLUE);}
+    else {
+      tft.fillCircle(playerX, playerY, radius, ST7735_GREEN);
+    }
+  }
+
+  // Function to draw the green ball
+  void draw(Adafruit_ST7735 &tft) {
+    tft.fillCircle(x, y, radius, ST7735_GREEN);
+  }
+
+  // Function to update the position of the green ball
+  void update() {
+    if (released) {
+      x += directionX * speed;
+      y += directionY * speed;
+    }
+  }
+
+  // Function to release the green ball
+  void release(float dirX, float dirY) {
+    directionX = dirX;
+    directionY = dirY;
+    released = true;
+  }
+
+  // Function to check if the ball is out of bounds
+  bool isOutOfBounds() {
+    return (x < 5 || x > 125 || y < 5 || y > 125);
+  }
+
+  // Function to reset the green ball
+  void reset(float startX, float startY) {
+    x = startX;
+    y = startY;
+    released = false;
+  }
+};
+
+class FlyingObject {
+public:
+  float x, y; // Position
+  int id;   // Unique identifier
+  int width, height, type; 
+ // Dimensions for erasing the object
+  virtual void update() = 0; // Update position
+  virtual void draw(Adafruit_ST7735 &tft) = 0; // Draw the object
+  virtual void clear(Adafruit_ST7735 &tft) { // Clear the object's previous position
+    tft.fillRect(x-7, y-7, width + 7, height + 7, ST7735_BLACK);
+  }
+};
+
+// Derived class for birds
+class Bird : public FlyingObject {
+public:
+  Bird(int startX, int startY, int newId) {
+    x = startX;
+    y = startY;
+    id = newId;
+    width = 12;
+    height = 12;
+    type = 0;
+  }
+  void update() override {
+    x -= 0.8; // Move left
+  }
+  void draw(Adafruit_ST7735 &tft) override {
+    tft.fillTriangle(x, y, x+7, y+3, x+7, y-3, ST7735_WHITE);
+  }
+};
+
+// Derived class for airplanes
+class Airplane : public FlyingObject {
+public:
+  Airplane(int startX, int startY, int newId) {
+    x = startX;
+    y = startY;
+    id = newId;
+    width = 12;
+    height = 12;
+    type = 1;
+  }
+  void update() override {
+    x -= 0.8; // Move left faster than birds
+  }
+  void draw(Adafruit_ST7735 &tft) override {
+    tft.fillRect(x, y, 10, 5, ST7735_RED);
+  }
+};
+
+// Derived class for health objects
+class Health : public FlyingObject {
+public:
+  Health(int startX, int startY, int newId) {
+    x = startX;
+    y = startY;
+    id = newId;
+    width = 12;
+    height = 12;
+    type = 2;
+  }
+  void update() override {
+    x -= 0.8; // Move left slowly
+  }
+  void draw(Adafruit_ST7735 &tft) override {
+    tft.fillCircle(x, y, 5, ST7735_BLUE); // Assuming radius 5 for health objects
+  }
+};
+
+// Function to create a random object
+FlyingObject* createRandomObject(int layer, int id) {
+  int startY = 30 + layer * 20; // Y position based on layer with a gap of 20 pixels
+  int startX = tft.width(); // Start from the right edge
+  int objectType = random(0, 20); // Randomly choose the type of object
+  switch (objectType) {
+    case 13:
+    case 12: 
+    return new Bird(startX, startY, id);
+    case 1:
+    case 19: 
+    case 11:
+    return new Airplane(startX, startY, id);
+    case 0: return new Health(startX, startY, id);
+  }
+  return nullptr; // In case of an unexpected value
+}
+
+
+FlyingObject* objects[215]; // Array to hold pointers to objects
+int nextId = 0;
 
 // Function to draw the ball
 void drawBall(int x, int y) {
@@ -47,27 +189,13 @@ const int triangleVertices[3][2] = {
   {1, 0},  // Bottom right
   {0, -6}  // Top point
 };
-// Game settings
-int birdSpeed = 2;
-int kamikazeSpeed = 3;
-int playerLife = 100;
-int score = 0;
 
-// Function to draw a triangle (bird)
-void drawBird(int x, int y) {
-  tft.fillTriangle(x, y, x+7, y+5, x+7, y-5, ST7735_WHITE); // Coordinates for the triangle vertices
-}
-
-bool ballReleased = false;
-// Function to draw a rectangle (kamikaze)
-void drawKamikaze(int x, int y) {
-  tft.fillRect(x, y, 10, 5, ST7735_RED); // x, y, width, height
-}
 
 // Variables to store the previous vertices of the ball pointer
 int prevVertices[3][2];
 
 void setup() {
+   Serial.begin(9600);
   // Initialize the TFT screen
   tft.initR(INITR_BLACKTAB);
   tft.setRotation(3);  
@@ -86,26 +214,24 @@ void setup() {
   }
   pinMode(JOY_BTN, INPUT_PULLUP);
   pinMode(UP_BTN, INPUT_PULLUP);
-  drawBall(playerX,playerY);
+  randomSeed(analogRead(0)); // Seed the random number generator
 }
+
 int prevX = playerX;
 int prevY = playerY;
 float xDirection = 1;
 float yDirection = 1;
 float angle = atan2(yDirection, xDirection);
 // Variables to store the filtered joystick values
-float filteredXValue = 666; // Center value for X-axis
-float filteredYValue = 666; // Center value for Y-axis
+float filteredXValue = 666; // player value for X-axis
+float filteredYValue = 666; // player value for Y-axis
 float filterStrength = 0.1; // Adjust this value to control the filtering strength
+GreenBall greenBall(playerX, playerY, BALL_RADIUS, BALL_SPEED);
 
 
 void loop() {
 
   // Keep player within screen 
-  int birdX = 20;
-  int birdY = 30;
-  int kamikazeX = 50;
-  int kamikazeY = 60;
 
   int rawXValue = analogRead(JOY_X);
   int rawYValue = analogRead(JOY_Y);
@@ -115,7 +241,7 @@ void loop() {
 
   // Map the joystick values to a range from -1 to 1
   float xDirection = (filteredXValue - 0) / 666.0;
-  float yDirection = (filteredYValue - 333) / 666.0;
+  float yDirection = (filteredYValue - 340) / 666.0;
 
   if (digitalRead(LEFT_BUTTON) == LOW && playerX>8) {
     // Erase the previous player position
@@ -170,49 +296,96 @@ void loop() {
     prevVertices[i][0] = rotatedVertices[i][0];
     prevVertices[i][1] = rotatedVertices[i][1];
   }
+  greenBall.clear(tft);
+ greenBall.update();
+  if (digitalRead(JOY_BTN) == LOW || digitalRead(UP_BTN) == LOW) {
+    if (!greenBall.released) {
+      greenBall.x = playerX;
+      greenBall.y = playerY;
+      float angle = atan2(yDirection, xDirection);
+      greenBall.release(cos(angle - PI / 2.0), sin(angle - PI / 2.0));
+    }
 
-if (digitalRead(JOY_BTN) == LOW||digitalRead(UP_BTN) == LOW) { // Assuming the button is active low
-    // If the button is pressed and the ball hasn't been released yet
-    if (!ballReleased) {
-      ballX = playerX;
-      ballY= playerY;
-      // Calculate the ball's trajectory based on the pointer's angle
-      ballXDirection = cos(angle-PI/2.0) * BALL_SPEED;
-      ballYDirection = sin(angle-PI/2.0) * BALL_SPEED;
+  
+  }
+  if (greenBall.isOutOfBounds()) {
+    greenBall.reset(130, 130);
+    greenBall.released = 0;
+    greenBall.clear(tft);
+  }
+  greenBall.draw(tft);
 
-      // Release the ball
-      ballReleased = true;
+   // Randomly decide whether to create a new object
+  if (random(0, 10) == 0) { // 10% chance to create a new object
+    int layer = random(0, 3); // Choose a random layer
+    objects[nextId % 215] = createRandomObject(layer, nextId);
+    nextId++;
+  }
+
+  // Update and draw all objects
+  for (int i = 0; i < 215; i++) {
+    if (objects[i] != nullptr) {
+      objects[i]->clear(tft); // Clear the object's previous position
+      objects[i]->update();
+      objects[i]->draw(tft);
+      objects[i+1] = nullptr;
+      // Check if the object is off the screen
+      if (objects[i]->x < 10 - objects[i]->width) {
+      tft.fillRect(objects[i]->x-2, objects[i]->y-6, objects[i]->width+7, objects[i]->height+7, ST7735_BLACK);
+        delete objects[i]; // Delete the object
+        objects[i] = nullptr; // Set the pointer to null
+      }
     }
   }
 
-  // If the ball has been released, update its position
-  if (ballReleased) {
-    // Clear the previous ball position
-    tft.fillCircle(ballX, ballY, BALL_RADIUS, ST7735_BLACK);
-    // Update the ball's position
-    ballX += ballXDirection;
-    ballY += ballYDirection;
+  // Check for collisions between the green ball and flying objects
+for (int i = 0; i < 215; i++) {
+    if (objects[i] != nullptr && greenBall.released) {
+        // Calculate bounding box of the flying object
+        int objectLeft = objects[i]->x - objects[i]->width / 2;
+        int objectRight = objects[i]->x + objects[i]->width / 2;
+        int objectTop = objects[i]->y - objects[i]->height / 2;
+        int objectBottom = objects[i]->y + objects[i]->height / 2;
 
-    // Draw the ball
-    drawBall(ballX, ballY);
-    tft.fillCircle(playerX, playerY, playerSize, ST7735_BLUE);
-    // Check if the ball has reached the edge of the screen
-    if (ballX < 5 || ballX > 125 || ballY < 5 || ballY > 125) {
-      tft.fillCircle(ballX, ballY, BALL_RADIUS, ST7735_BLACK);
-      // Reset the ball's position to the center of the pointer
-      ballX = playerX;
-      ballY = playerY;
-      drawBall(ballX, ballY);
-      ballReleased = false;
+        // Calculate bounding box of the green ball
+        int ballLeft = greenBall.x - greenBall.radius;
+        int ballRight = greenBall.x + greenBall.radius;
+        int ballTop = greenBall.y - greenBall.radius;
+        int ballBottom = greenBall.y + greenBall.radius;
+
+        // Check for intersection between bounding boxes
+        if (ballRight >= objectLeft && ballLeft <= objectRight && ballBottom >= objectTop && ballTop <= objectBottom) {
+            // Collision detected
+            // Print the class of the flying object
+            if (objects[i]->type == 1) {
+                Serial.println("Collision with kame");
+            } else if (objects[i]->type == 0) {
+                Serial.println("Collision with bird");
+            } else if (objects[i]->type == 2) {
+                Serial.println("Collision with Health");
+            }
+            
+            // Implement collision handling logic here
+            // Erase the object from the screen
+            objects[i]->clear(tft);
+            
+            // Delete the object
+            delete objects[i];
+            objects[i] = nullptr;
+
+            // Reset the green ball
+            greenBall.clear(tft);
+            greenBall.reset(130, 130);
+            greenBall.released = false;
+
+         
+        }
     }
-  }
+}
 
-  // Draw the shapes
-  drawBird(birdX, birdY);       // Draw a triangle for the bird
-  drawKamikaze(kamikazeX, kamikazeY); // Draw a rectangle for the kamikaze
 
   // Add a small delay to see the shapes on screen
-  delay(10);
+  delay(2.5);
 
   // Update the positions or add game logic here
   // Read joystick inputs
@@ -223,31 +396,7 @@ if (digitalRead(JOY_BTN) == LOW||digitalRead(UP_BTN) == LOW) { // Assuming the b
   // Redraw graphics
   
   // Check for game over condition
-  if(playerLife <= 0) {
-    // End game
-    gameOver();
-  }
-}
-
-// Function to generate a new bird
-void generateBird() {
-  // Generate bird at random position with birdSpeed
-}
-
-// Function to generate a new kamikaze plane
-void generateKamikaze() {
-  // Generate kamikaze plane at random position with kamikazeSpeed
-}
-
-// Function to handle game over
-void gameOver() {
-  // Display game over screen
-  tft.fillScreen(BLACK);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(2);
-  tft.setCursor(50, 50);
-  tft.print("Game Over!");
-  
+ 
   // Optionally restart the game or return to a menu
 }
 
