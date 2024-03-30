@@ -170,7 +170,7 @@ FlyingObject* createRandomObject(int layer, int id) {
     case 19: 
     case 11:
     return new Airplane(startX, startY, id);
-    case 0: return new Health(startX, startY, id);
+    case 3: return new Health(startX, startY, id);
   }
   return nullptr; // In case of an unexpected value
 }
@@ -214,7 +214,7 @@ void setup() {
   }
   pinMode(JOY_BTN, INPUT_PULLUP);
   pinMode(UP_BTN, INPUT_PULLUP);
-  randomSeed(analogRead(0)); // Seed the random number generator
+  randomSeed(analogRead(56)); // Seed the random number generator
 }
 
 int prevX = playerX;
@@ -316,10 +316,9 @@ void loop() {
   greenBall.draw(tft);
 
    // Randomly decide whether to create a new object
-  if (random(0, 10) == 0) { // 10% chance to create a new object
+  if (random(0, 9) == 0) { // 10% chance to create a new object
     int layer = random(0, 3); // Choose a random layer
-    objects[nextId % 215] = createRandomObject(layer, nextId);
-    nextId++;
+    objects[nextId++ % 215] = createRandomObject(layer, nextId);
   }
 
   // Update and draw all objects
