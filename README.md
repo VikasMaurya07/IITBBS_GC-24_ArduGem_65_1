@@ -71,7 +71,7 @@ Rules:
 6. Press the left and right buttons to move the tank horizontally across the screen.
 7. Collect items to increase your score and health.
 8. Avoid collisions with obstacles to prevent losing health.
-9. The game ends when the player's health reaches zero. You can choose to restart or exit the game from the game over screen.
+9. The game ends when the player's health reaches zero. You can choose to restart or exit the game from the game over screen!
 
 ## Wiring Diagram
 Creating a wiring diagram for connecting an Arduino, Funduino joystick shield, and an ST7735 TFT display involves several connections:
