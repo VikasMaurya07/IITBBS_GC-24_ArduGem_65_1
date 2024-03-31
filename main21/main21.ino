@@ -23,12 +23,18 @@
 #define MAGENTA 0xF81F
 #define YELLOW  0xFFE0  
 #define WHITE   0xFFFF
+#define ORANGE  0xFA60
+#define AMBER ((31 << 11) | (50 << 5) | 0)
 
 #define BALL_RADIUS 2
 #define BALL_SPEED 1.5
 
 // Initialize the display
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
+
+int score = 0;
+int playerLife = 100;
+
 
 float playerX = 64;
 float playerY = 120;
@@ -190,12 +196,56 @@ const int triangleVertices[3][2] = {
   {0, -6}  // Top point
 };
 
+void fallingKame(int x, int y) {
+  // Initial drawing of the falling object
+  tft.fillRect(x, y, 10, 5, ST7735_RED);
+  // Loop to animate the falling object
+  while (y < 120) { // Update the loop condition to avoid indefinite looping
+    // Erase the previous position
+    if (digitalRead(LEFT_BUTTON) == LOW && playerX>8) {
+    // Erase the previous player position
+    tft.fillCircle(playerX, playerY, playerSize, ST7735_BLACK);
+    // Update player position to the left
+    playerX -= moveStep;
+    // Draw the player at the new position
+    tft.fillCircle(playerX, playerY, playerSize, ST7735_BLUE);
+  }
+
+  // Check if right button is pressed
+  if (digitalRead(RIGHT_BUTTON) == LOW && playerX<122) {
+    // Erase the previous player position
+    tft.fillCircle(playerX, playerY, playerSize, ST7735_BLACK);
+    // Update player position to the right
+    playerX += moveStep;
+    // Draw the player at the new position
+    tft.fillCircle(playerX, playerY, playerSize, ST7735_BLUE);
+  }
+
+    tft.fillRect(x, y, 10, 5, ST7735_BLACK);
+    
+    // Increment y position for falling effect
+    y++;
+
+    // Draw the object at the new position
+    tft.fillRect(x, y, 10, 5, ST7735_RED);
+
+    // Add a slight delay for animation smoothness
+    delay(10); // Adjust the delay value as needed
+  }
+
+  // Draw an explosion or any other effect at the final position
+  tft.fillRoundRect(x - 2, y - 2, 15, 15, 15, WHITE);
+  delay(60);
+  tft.fillRoundRect(x - 2, y - 2, 15, 15, 40, BLACK);
+   score += 20;
+    playerLife = max(0,playerLife-(1-abs(x-playerX)/130)*50);
+}
 
 // Variables to store the previous vertices of the ball pointer
 int prevVertices[3][2];
 
 void setup() {
-   Serial.begin(9600);
+  Serial.begin(9600);
   // Initialize the TFT screen
   tft.initR(INITR_BLACKTAB);
   tft.setRotation(3);  
@@ -230,9 +280,7 @@ GreenBall greenBall(playerX, playerY, BALL_RADIUS, BALL_SPEED);
 
 
 void loop() {
-
   // Keep player within screen 
-
   int rawXValue = analogRead(JOY_X);
   int rawYValue = analogRead(JOY_Y);
 
@@ -354,18 +402,22 @@ for (int i = 0; i < 215; i++) {
 
         // Check for intersection between bounding boxes
         if (ballRight >= objectLeft && ballLeft <= objectRight && ballBottom >= objectTop && ballTop <= objectBottom) {
-            // Collision detected
+           // Erase the object from the screen
             // Print the class of the flying object
             if (objects[i]->type == 1) {
-                Serial.println("Collision with kame");
+              fallingKame(objects[i]->x,objects[i]->y);
             } else if (objects[i]->type == 0) {
-                Serial.println("Collision with bird");
+              score += 15;
+                
             } else if (objects[i]->type == 2) {
-                Serial.println("Collision with Health");
+                score += 7;
+                playerLife = min(100,playerLife+20);
             }
-            
-            // Implement collision handling logic here
-            // Erase the object from the screen
+            Serial.print("PL: ");
+            Serial.println(playerLife);
+            Serial.print("Score: ");
+            Serial.println(score);
+
             objects[i]->clear(tft);
             
             // Delete the object
@@ -376,27 +428,25 @@ for (int i = 0; i < 215; i++) {
             greenBall.clear(tft);
             greenBall.reset(130, 130);
             greenBall.released = false;
-
          
         }
     }
 }
+  unsigned long currentTime = millis(); // Current time since the Arduino board started running
+  unsigned long decreaseInterval = 1000; // Decrease player's life every 1 second (adjust as needed)
+  static unsigned long previousDecreaseTime = 0;
 
+  if (currentTime - previousDecreaseTime >= decreaseInterval) {
+    // Decrease player's life by a certain amount every interval
+    playerLife = max(0, playerLife - 3); // Adjust the decrement value as needed
+    previousDecreaseTime = currentTime;
+  }
 
   // Add a small delay to see the shapes on screen
   delay(2.5);
+  Serial.print("PL22:");
+  Serial.println(playerLife);
 
-  // Update the positions or add game logic here
-  // Read joystick inputs
-  
-  // Game logic for moving birds and kamikaze planes
-  // Collision detection
-  // Update player life and score
-  // Redraw graphics
-  
-  // Check for game over condition
- 
-  // Optionally restart the game or return to a menu
 }
 
 // Additional functions for game logic
