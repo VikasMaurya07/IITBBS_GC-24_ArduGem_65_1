@@ -176,7 +176,7 @@ FlyingObject *createRandomObject(int layer, int id, int playerLife) {
   int objectType;
   
   // Randomly choose the type of object
-  if (playerLife < 20) {
+  if (playerLife < 30) {
     // Increase the likelihood of health objects when player life is low
     objectType = random(0, 9);
   } else {

@@ -1,14 +1,15 @@
 # IITBBS_GC-24_ArduGem_65_1
-*The code for the game should be loaded from the main21 file in the mainFILE folder.
+**Team_ID : 65**
+*The code for the game should be loaded from the main21 file in the mainFILE folder.*
 
-# Game Title
-KAMI-KRAZE
+# Game Title: KAMI-KRAZE
+
 
 ## Description
 This is a simple game built for Arduino using Adafruit_GFX and Adafruit_ST7735 libraries.
 Embark on an adrenaline-fueled journey through the chaos of World War II skies. As a skilled tank commander, you must protect your territory from relentless aerial assaults by enemy planes. But beware, not all planes are created equal in this high-stakes battle for survival.
 
-In Tank Defender, you control a powerful tank stationed on the ground, facing waves of incoming enemy aircraft. Your primary objective is to shoot down as many planes as possible while strategically managing your health to withstand the onslaught.
+In this game, you control a powerful tank stationed on the ground, facing waves of incoming enemy aircraft. Your primary objective is to shoot down as many planes as possible while strategically managing your health to withstand the onslaught.
 
 The sky is filled with two distinct types of planes: white and blue. White planes are standard aircraft, relatively easy to shoot down, but they're still a threat to your position. Destroying them earns you points, but they won't pose a significant danger if left unchecked.
 
@@ -26,6 +27,7 @@ KAMI-KRAZE offers a thrilling blend of fast-paced action, strategic decision-mak
 - Scoring system based on collected items.
 - Health system with life decrement over time.
 - Game over screen with score display and option to restart or exit.
+
 ## Rules
 Rules:
 1. Objective: Your goal is to survive as long as possible while accumulating points by shooting down enemy planes, collecting items, and avoiding collisions with obstacles.
@@ -41,7 +43,7 @@ Rules:
 
 4. Health:
    - Your health gradually decreases over time, so collect red circles to replenish it.
-   - Colliding with obstacles reduces your health. Keep an eye on your health bar and avoid collisions to stay in the game.
+   - Colliding with suicidal kamikazes reduces your health. Keep an eye on your health bar and avoid collisions to stay in the game.
 
 5. Game Over:
    - The game ends when your health reaches zero.
@@ -57,7 +59,7 @@ Rules:
 1. Clone or download the repository.
 2. Connect the Arduino board to your computer.
 3. Open the Arduino IDE.
-4. Load the main game sketch (`game.ino`) into the IDE.
+4. Load the main game sketch (`main21.ino`) into the IDE from the folder ('mainFILE').
 5. Make sure to install the required libraries: Adafruit_GFX, Adafruit_ST7735, and Wire.
 6. Select the appropriate board and port from the Tools menu.
 7. Upload the sketch to your Arduino board.
