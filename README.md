@@ -67,10 +67,11 @@ Rules:
 3. Follow the on-screen instructions to navigate the menu and start the game.
 4. Use the joystick to control tank artillery aim. In order to aim rightward direction with respect of the user        as given in picture,drag the joystick up and then left, while for leftward direction , drag the joystick down and then left.
    ![alt text](OIP-1.jpeg)
-5. Press the left and right buttons to move the tank horizontally across the screen.
-6. Collect items to increase your score and health.
-7. Avoid collisions with obstacles to prevent losing health.
-8. The game ends when the player's health reaches zero. You can choose to restart or exit the game from the game over screen.
+5. In order to shoot bullet-balls, press the joystick button or up-button(A)
+6. Press the left and right buttons to move the tank horizontally across the screen.
+7. Collect items to increase your score and health.
+8. Avoid collisions with obstacles to prevent losing health.
+9. The game ends when the player's health reaches zero. You can choose to restart or exit the game from the game over screen!
 
 ## Wiring Diagram
 Creating a wiring diagram for connecting an Arduino, Funduino joystick shield, and an ST7735 TFT display involves several connections:
