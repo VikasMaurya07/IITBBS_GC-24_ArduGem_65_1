@@ -34,6 +34,7 @@ Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 
 int score = 0;
 int playerLife = 100;
+int highscore = 0;
 
 
 float playerX = 64;
@@ -239,7 +240,7 @@ void fallingKame(int x, int y) {
   delay(60);
   tft.fillRoundRect(x - 2, y - 2, 15, 15, 40, BLACK);
   score += 50;
-  playerLife = max(0, playerLife - (1 - abs(x - playerX) / 130) * 50);
+  playerLife = max(0, playerLife - (1 - abs(x - playerX) / 130) * 30);
 }
 
 // Variables to store the previous vertices of the ball pointer
@@ -278,6 +279,37 @@ float filteredXValue = 666;  // player value for X-axis
 float filteredYValue = 666;  // player value for Y-axis
 float filterStrength = 0.1;  // Adjust this value to control the filtering strength
 GreenBall greenBall(playerX, playerY, BALL_RADIUS, BALL_SPEED);
+
+void displayMenu() {
+  tft.fillScreen(ST7735_BLACK);    // Clear the screen
+  tft.setTextSize(2);              // Set text size
+  tft.setTextColor(ST7735_WHITE);  // Set text color
+  
+  // Display menu options
+  tft.setCursor(12, 40);
+  tft.println("Menu");
+  tft.setCursor(12, 70);
+  tft.println("1. Start Game");
+  tft.setCursor(12, 100);
+  tft.println("2. High Scores");
+  tft.setCursor(12, 130);
+  tft.println("3. Exit");
+  
+  // Wait for user input to choose an option
+  while (true) {
+    if (digitalRead(LEFT_BUTTON) == LOW) {
+      // Start the game
+      setup(); // Restart the game
+      return;  // Exit the function
+          // Exit the function
+    } else if (digitalRead(START_BUTTON) == LOW) {
+      // Exit the game
+      return;  // Exit the function
+    }
+    delay(100); // Delay to avoid button bouncing
+  }
+}
+
 
 void gamePlay() {
   while (playerLife > 0) {
@@ -457,14 +489,38 @@ void gamePlay() {
   
 void endGame() {
   tft.fillScreen(ST7735_BLACK);    // Clear the screen
-  tft.setTextSize(2);              // Set text size
+  tft.setTextSize(1);              // Set text size
   tft.setTextColor(ST7735_WHITE);  // Set text color
-  tft.setCursor(12, 40);           // Set cursor position
+  tft.setCursor(12, 20);           // Set cursor position
   tft.println("Game Over");        // Print "Game Over" message
-  tft.setCursor(12, 70); // Set cursor position for the score
+  tft.setCursor(12, 50); // Set cursor position for the score
   tft.print("Score:"); // Print "Score: " prefix
   tft.println(score); // Print the actual score value
-}
+  highscore = max(score, highscore);
+  if (highscore==score) {
+    tft.setCursor(12, 70); // Set cursor position for the score
+  tft.print("New Highscore!"); 
+  }
+   tft.setCursor(12, 90); // Set cursor position for the options
+  tft.print("Restart: Press Left"); // Print the option to restart
+  tft.setCursor(12, 110); // Set cursor position for the options
+  tft.print("Menu: Press Right");   // Print the option to go to the menu
+  
+  // Wait for the user input to choose between options
+  while (true) {
+    if (digitalRead(LEFT_BUTTON) == LOW) {
+      playerLife = 100;
+      score = 0;
+      setup();
+      gamePlay(); // Restart the game
+      return;  // Exit the function
+    } else if (digitalRead(RIGHT_BUTTON) == LOW) {
+      // Go to the menu
+      displayMenu(); // Function to display the menu
+      return;        // Exit the function
+    }
+    delay(100); 
+}}
 
 void loop() {
   gamePlay();
