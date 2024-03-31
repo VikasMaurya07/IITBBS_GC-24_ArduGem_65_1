@@ -78,7 +78,7 @@ Rules:
 
 ## Wiring Diagram
 Creating a wiring diagram for connecting an Arduino, Funduino joystick shield, and an ST7735 TFT display involves several connections:
-
+![alt text](wiring_diagram.jpg)
 1. **Arduino to ST7735 TFT Display:**
     LED to 3.3V (or use a PWM pin for backlight control)
     SCK to Digital Pin 13 (SCLK)
