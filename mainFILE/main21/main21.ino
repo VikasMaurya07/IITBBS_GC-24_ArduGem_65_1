@@ -1,3 +1,6 @@
+//teamID - 65
+//ARDDUGEM
+
 #include <Adafruit_GFX.h>  // Core graphics library // Hardware-specific library
 #include <Adafruit_ST7735.h>
 #include <Wire.h>
@@ -28,10 +31,10 @@
 #define BALL_RADIUS 2
 #define BALL_SPEED 4
 
-unsigned long currentTime = millis(); 
-
 // Initialize the display
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
+
+unsigned long currentTime = millis(); 
 
 int score = 0;
 int playerLife = 100;
@@ -109,38 +112,38 @@ public:
   }
 };
 
-// Derived class for birds
-class Bird : public FlyingObject {
+// Derived class for JustPlanes
+class JustPlane : public FlyingObject {
 public:
-  Bird(int startX, int startY, int newId) {
+  JustPlane(int startX, int startY, int newId) {
     x = startX;
     y = startY;
     id = newId;
-    width = 12;
-    height = 12;
+    width = 9;
+    height = 7;
     type = 0;
   }
   void update() override {
-    x -= 0.8+ currentTime*0.05;  // Move left
+    x -= 1.7;  // Move left
   }
   void draw(Adafruit_ST7735 &tft) override {
     tft.fillTriangle(x, y, x + 7, y + 3, x + 7, y - 3, ST7735_WHITE);
   }
 };
 
-// Derived class for airplanes
-class Airplane : public FlyingObject {
+// Derived class for Kamikazes
+class Kamikaze : public FlyingObject {
 public:
-  Airplane(int startX, int startY, int newId) {
+  Kamikaze(int startX, int startY, int newId) {
     x = startX;
     y = startY;
     id = newId;
     width = 12;
-    height = 12;
+    height = 6;
     type = 1;
   }
   void update() override {
-    x -= 0.8+ currentTime*0.05;  // Move left faster than birds
+    x -= 1.7;  // Move left faster than JustPlanes
   }
   void draw(Adafruit_ST7735 &tft) override {
     tft.fillRect(x, y, 10, 5, ST7735_RED);
@@ -159,7 +162,7 @@ public:
     type = 2;
   }
   void update() override {
-    x -= 0.8+ currentTime*0.05;  // Move left slowly
+    x -= 1.7;  // Move left slowly
   }
   void draw(Adafruit_ST7735 &tft) override {
     tft.fillCircle(x, y, 5, ST7735_BLUE);  // Assuming radius 5 for health objects
@@ -167,26 +170,33 @@ public:
 };
 
 // Function to create a random object
-FlyingObject *createRandomObject(int layer, int id) {
+FlyingObject *createRandomObject(int layer, int id, int playerLife) {
   int startY = 30 + layer * 20;    // Y position based on layer with a gap of 20 pixels
   int startX = tft.width();        // Start from the right edge
-  int objectType = random(0, 20);  // Randomly choose the type of object
+  int objectType;
+  
+  // Randomly choose the type of object
+  if (playerLife < 20) {
+    // Increase the likelihood of health objects when player life is low
+    objectType = random(0, 9);
+  } else {
+    objectType = random(0, 20);
+  }
+
   switch (objectType) {
     case 13:
     case 12:
-      return new Bird(startX, startY, id);
+      return new JustPlane(startX, startY, id);
     case 1:
     case 19:
     case 11:
-      return new Airplane(startX, startY, id);
-    case 3: return new Health(startX, startY, id);
+      return new Kamikaze(startX, startY, id);
+    case 3: 
+      return new Health(startX, startY, id);
   }
   return nullptr;  // In case of an unexpected value
 }
 
-
-FlyingObject *objects[215];  // Array to hold pointers to objects
-int nextId = 0;
 
 // Function to draw the ball
 void drawBall(int x, int y) {
@@ -203,6 +213,7 @@ void fallingKame(int x, int y) {
   // Initial drawing of the falling object
   tft.fillRect(x, y, 10, 5, ST7735_RED);
   // Loop to animate the falling object
+  int time = millis();
   while (y < 120) {  // Update the loop condition to avoid indefinite looping
     // Erase the previous position
     if (digitalRead(LEFT_BUTTON) == LOW && playerX > 8) {
@@ -235,20 +246,29 @@ void fallingKame(int x, int y) {
     // Add a slight delay for animation smoothness
     delay(10);  // Adjust the delay value as needed
   }
+  currentTime -= time; 
 
   // Draw an explosion or any other effect at the final position
   tft.fillRoundRect(x - 2, y - 2, 15, 15, 15, WHITE);
   delay(60);
   tft.fillRoundRect(x - 2, y - 2, 15, 15, 40, BLACK);
   score += 50;
-  playerLife = max(0, playerLife - (1 - abs(x - playerX) / 130) * 30);
+  if (abs(x - playerX)<30) {
+  playerLife = max(0, playerLife - (1 - abs(x - playerX) / 130) * 40);}
 }
 
 // Variables to store the previous vertices of the ball pointer
 int prevVertices[3][2];
 
+FlyingObject *objects[150];  // Array to hold pointers to objects
+  int nextId = 0;
+  int  i;
+
 void setup() {
   Serial.begin(9600);
+  i = 0;
+  FlyingObject *objects[150];  // Array to hold pointers to objects
+  int nextId = 0;
   // Initialize the TFT screen
   tft.initR(INITR_BLACKTAB);
   tft.setRotation(3);
@@ -267,7 +287,7 @@ void setup() {
   }
   pinMode(JOY_BTN, INPUT_PULLUP);
   pinMode(UP_BTN, INPUT_PULLUP);
-  randomSeed(analogRead(56));  // Seed the random number generator
+  randomSeed(analogRead(random(0, 1023)));// Seed the random number generator
    tft.fillScreen(BLACK);
     tft.setRotation(3);
     tft.setCursor(44, 34);
@@ -301,18 +321,19 @@ void menu() {
     tft.setTextSize(1); // Set text size to 2
     tft.setCursor(30, 54); // Set cursor position
     tft.setTextColor(WHITE);
-    tft.println("PLAY: RIGHT BTN");
+    tft.println("PLAY: LEFT BTN");
     tft.setTextColor(WHITE);
     tft.setCursor(1, 74);
     tft.println("HIGHSCORE: DOWN BTN");
     
     while(true) {
-    if (digitalRead(RIGHT_BUTTON) == LOW) {
+    if (digitalRead(LEFT_BUTTON) == LOW) {
         tft.fillScreen(BLACK);
         tft.setCursor(10, 50);
         tft.setTextColor(WHITE);
         playerLife = 100;
         score = 0;
+        setup();
         gamePlay(); // Clear the screen
     }
 
@@ -322,7 +343,7 @@ void menu() {
         tft.setTextColor(WHITE);
         tft.print("HIGHSCORE: ");
         tft.println(highscore);
-        delay(2000); // Display message for 1 second
+        delay(1500); // Display message for 1 second
         menu(); // Clear the screen
     }}
 }
@@ -332,6 +353,7 @@ void menu() {
 void gamePlay() {
   while (playerLife > 0) {
     //TopScreen
+    tft.setTextSize(1);
     tft.fillRect(0, 0, tft.width(), 20, ST7735_BLACK);
     tft.fillRect(3, 4, 0.30*(playerLife), 10,ST7735_BLUE);
     tft.setCursor(37, 7);
@@ -422,11 +444,11 @@ void gamePlay() {
     // Randomly decide whether to create a new object
     if (random(0, 9) == 0) {     // 10% chance to create a new object
       int layer = random(0, 3);  // Choose a random layer
-      objects[nextId++ % 215] = createRandomObject(layer, nextId);
+      objects[nextId++ % 150] = createRandomObject(layer, nextId, playerLife);
     }
 
     // Update and draw all objects
-    for (int i = 0; i < 215; i++) {
+    for (int i = 0; i < 150; i++) {
       if (objects[i] != nullptr) {
         objects[i]->clear(tft);  // Clear the object's previous position
         objects[i]->update();
@@ -442,7 +464,7 @@ void gamePlay() {
     }
 
     // Check for collisions between the green ball and flying objects
-    for (int i = 0; i < 215; i++) {
+    for (int i = 0; i < 150; i++) {
       if (objects[i] != nullptr && greenBall.released) {
         // Calculate bounding box of the flying object
         int objectLeft = objects[i]->x - objects[i]->width / 2;
@@ -497,8 +519,7 @@ void gamePlay() {
       previousDecreaseTime = currentTime;
     }
 
-    // Add a small delay to see the shapes on screen
-    delay(2.5);
+    delay(2.3);
   }
   if (playerLife == 0) {
     endGame();
@@ -531,14 +552,16 @@ void endGame() {
       playerLife = 100;
       score = 0;
       tft.fillScreen(BLACK);
+      setup();
       gamePlay(); // Restart the game
       return;  // Exit the function
     } else if (digitalRead(RIGHT_BUTTON) == LOW) {
       // Go to the menu
       menu(); // Function to display the menu
+      delay(100); 
       return;        // Exit the function
     }
-    delay(100); 
+  
 }}
 
 void loop() {
