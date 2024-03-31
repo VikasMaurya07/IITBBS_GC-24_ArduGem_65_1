@@ -65,7 +65,7 @@ Rules:
 1. Connect the Adafruit ST7735 TFT display, joystick module, and buttons to the Arduino board according to the wiring diagram provided.
 2. Power on the Arduino board.
 3. Follow the on-screen instructions to navigate the menu and start the game.
-4. Use the joystick to control tank artillery aim.In order to aim rightward direction with respect of the user
+4. Use the joystick to control tank artillery aim. In order to aim rightward direction with respect of the user        as given in picture,drag the joystick up and then left, while for leftward direction , drag the joystick down and then left.
    ![alt text](OIP-1.jpeg)
 5. Press the left and right buttons to move the tank horizontally across the screen.
 6. Collect items to increase your score and health.
