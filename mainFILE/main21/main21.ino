@@ -16,7 +16,7 @@
 #define DOWN_BTN 4
 
 #define TFT_CS 10
-#define TFT_RST 12  // Or set to -1 and connect to Arduino RESET pin
+#define TFT_RST 12  
 #define TFT_DC 9
 
 #define BLACK 0x0000
@@ -48,11 +48,11 @@ int moveStep = 1;
 
 class GreenBall {
 public:
-  float x, y;                    // Position
-  float radius = 2;              // Radius of the ball
-  float speed = 1.5;             // Speed of the ball
-  float directionX, directionY;  // Direction of movement
-  bool released;                 // Whether the ball has been released
+  float x, y;                    
+  float radius = 2;              
+  float speed = 1.5;             
+  float directionX, directionY;  
+  bool released;                 
 
   GreenBall(float startX, float startY, float r, float s)
     : x(startX), y(startY), radius(r), speed(s), released(false) {}
@@ -143,7 +143,7 @@ public:
     type = 1;
   }
   void update() override {
-    x -= 1.7;  // Move left faster than JustPlanes
+    x -= 1.7;  
   }
   void draw(Adafruit_ST7735 &tft) override {
     tft.fillRect(x, y, 10, 5, ST7735_RED);
@@ -162,10 +162,10 @@ public:
     type = 2;
   }
   void update() override {
-    x -= 1.7;  // Move left slowly
+    x -= 1.7; 
   }
   void draw(Adafruit_ST7735 &tft) override {
-    tft.fillCircle(x, y, 5, ST7735_BLUE);  // Assuming radius 5 for health objects
+    tft.fillCircle(x, y, 5, ST7735_BLUE);  
   }
 };
 
@@ -311,14 +311,14 @@ float xDirection = 1;
 float yDirection = 1;
 float angle = atan2(yDirection, xDirection);
 // Variables to store the filtered joystick values
-float filteredXValue = 666;  // player value for X-axis
-float filteredYValue = 666;  // player value for Y-axis
-float filterStrength = 0.1;  // Adjust this value to control the filtering strength
+float filteredXValue = 666;  
+float filteredYValue = 666;  
+float filterStrength = 0.1; 
 GreenBall greenBall(playerX, playerY, BALL_RADIUS, BALL_SPEED);
 
 void menu() {
     tft.fillScreen(BLACK);
-    tft.setTextSize(1); // Set text size to 2
+    tft.setTextSize(1); 
     tft.setCursor(30, 54); // Set cursor position
     tft.setTextColor(WHITE);
     tft.println("PLAY: LEFT BTN");
@@ -334,7 +334,7 @@ void menu() {
         playerLife = 100;
         score = 0;
         setup();
-        gamePlay(); // Clear the screen
+        gamePlay(); 
     }
 
     if (digitalRead(DOWN_BTN) == LOW) {
@@ -343,8 +343,8 @@ void menu() {
         tft.setTextColor(WHITE);
         tft.print("HIGHSCORE: ");
         tft.println(highscore);
-        delay(1500); // Display message for 1 second
-        menu(); // Clear the screen
+        delay(1500); 
+        menu();
     }}
 }
 
@@ -369,7 +369,7 @@ void gamePlay() {
     filteredXValue = (filterStrength * rawXValue) + ((1 - filterStrength) * filteredXValue);
     filteredYValue = (filterStrength * rawYValue) + ((1 - filterStrength) * filteredYValue);
 
-    // Map the joystick values to a range from -1 to 1
+    // Map the joystick values 
     float xDirection = (filteredXValue - 0) / 666.0;
     float yDirection = (filteredYValue - 340) / 666.0;
 
@@ -396,7 +396,8 @@ void gamePlay() {
     float angle = atan2(yDirection, xDirection);
 
     angle = constrain(angle, -PI / 2, PI / 2);
-
+    
+    // for orienting the pointer on the tank.
     // Rotate the triangle vertices based on the new angle
     int rotatedVertices[3][2];
     for (int i = 0; i < 3; i++) {
