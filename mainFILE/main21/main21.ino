@@ -119,8 +119,8 @@ public:
     x = startX;
     y = startY;
     id = newId;
-    width = 9;
-    height = 7;
+    width = 12;
+    height = 10;
     type = 0;
   }
   void update() override {
@@ -139,7 +139,7 @@ public:
     y = startY;
     id = newId;
     width = 12;
-    height = 6;
+    height = 10;
     type = 1;
   }
   void update() override {

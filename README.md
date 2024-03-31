@@ -1,4 +1,5 @@
 # IITBBS_GC-24_ArduGem_65_1
+*The code for the game should be loaded from the main21 file in the mainFILE folder.
 
 # Game Title
 KAMI-KRAZE
