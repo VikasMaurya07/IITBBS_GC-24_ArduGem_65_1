@@ -10,6 +10,7 @@
 #define START_BUTTON 6
 #define JOY_BTN 8
 #define UP_BTN 2
+#define DOWN_BTN 4
 
 #define TFT_CS 10
 #define TFT_RST 12  // Or set to -1 and connect to Arduino RESET pin
@@ -267,6 +268,21 @@ void setup() {
   pinMode(JOY_BTN, INPUT_PULLUP);
   pinMode(UP_BTN, INPUT_PULLUP);
   randomSeed(analogRead(56));  // Seed the random number generator
+   tft.fillScreen(BLACK);
+    tft.setRotation(3);
+    tft.setCursor(44, 34);
+    tft.setTextSize(1);
+    tft.setTextColor(WHITE);
+    tft.println("Welcome");
+    tft.setCursor(60, 50);
+    tft.setTextColor(WHITE);
+    tft.println("to");
+    tft.setTextSize(2);
+    tft.setCursor(10, 70);
+    tft.println("KAMI-KRAZE");
+    Serial.begin(9600);
+    delay(1000);
+    tft.fillScreen(BLACK);
 }
 
 int prevX = playerX;
@@ -280,35 +296,37 @@ float filteredYValue = 666;  // player value for Y-axis
 float filterStrength = 0.1;  // Adjust this value to control the filtering strength
 GreenBall greenBall(playerX, playerY, BALL_RADIUS, BALL_SPEED);
 
-void displayMenu() {
-  tft.fillScreen(ST7735_BLACK);    // Clear the screen
-  tft.setTextSize(2);              // Set text size
-  tft.setTextColor(ST7735_WHITE);  // Set text color
-  
-  // Display menu options
-  tft.setCursor(12, 40);
-  tft.println("Menu");
-  tft.setCursor(12, 70);
-  tft.println("1. Start Game");
-  tft.setCursor(12, 100);
-  tft.println("2. High Scores");
-  tft.setCursor(12, 130);
-  tft.println("3. Exit");
-  
-  // Wait for user input to choose an option
-  while (true) {
-    if (digitalRead(LEFT_BUTTON) == LOW) {
-      // Start the game
-      setup(); // Restart the game
-      return;  // Exit the function
-          // Exit the function
-    } else if (digitalRead(START_BUTTON) == LOW) {
-      // Exit the game
-      return;  // Exit the function
+void menu() {
+    tft.fillScreen(BLACK);
+    tft.setTextSize(1); // Set text size to 2
+    tft.setCursor(30, 54); // Set cursor position
+    tft.setTextColor(WHITE);
+    tft.println("PLAY: RIGHT BTN");
+    tft.setTextColor(WHITE);
+    tft.setCursor(1, 74);
+    tft.println("HIGHSCORE: DOWN BTN");
+    
+    while(true) {
+    if (digitalRead(RIGHT_BUTTON) == LOW) {
+        tft.fillScreen(BLACK);
+        tft.setCursor(10, 50);
+        tft.setTextColor(WHITE);
+        playerLife = 100;
+        score = 0;
+        gamePlay(); // Clear the screen
     }
-    delay(100); // Delay to avoid button bouncing
-  }
+
+    if (digitalRead(DOWN_BTN) == LOW) {
+        tft.fillScreen(BLACK);
+        tft.setCursor(10, 50);
+        tft.setTextColor(WHITE);
+        tft.print("HIGHSCORE: ");
+        tft.println(highscore);
+        delay(2000); // Display message for 1 second
+        menu(); // Clear the screen
+    }}
 }
+
 
 
 void gamePlay() {
@@ -481,8 +499,9 @@ void gamePlay() {
 
     // Add a small delay to see the shapes on screen
     delay(2.5);
-    Serial.print("PL22:");
-    Serial.println(playerLife);
+  }
+  if (playerLife == 0) {
+    endGame();
   }
 }
 
@@ -511,18 +530,19 @@ void endGame() {
     if (digitalRead(LEFT_BUTTON) == LOW) {
       playerLife = 100;
       score = 0;
-      setup();
+      tft.fillScreen(BLACK);
       gamePlay(); // Restart the game
       return;  // Exit the function
     } else if (digitalRead(RIGHT_BUTTON) == LOW) {
       // Go to the menu
-      displayMenu(); // Function to display the menu
+      menu(); // Function to display the menu
       return;        // Exit the function
     }
     delay(100); 
 }}
 
 void loop() {
+  menu();
   gamePlay();
   endGame();
 }
