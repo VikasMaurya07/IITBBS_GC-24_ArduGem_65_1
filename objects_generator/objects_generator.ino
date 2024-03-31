@@ -126,6 +126,6 @@ void loop() {
     }
   }
 
-  // Add a delay to control the speed of the game
+  //a delay to control the speed of the game
   delay(0.05);
 }
