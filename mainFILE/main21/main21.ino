@@ -157,8 +157,8 @@ public:
     x = startX;
     y = startY;
     id = newId;
-    width = 12;
-    height = 12;
+    width = 10;
+    height = 10;
     type = 2;
   }
   void update() override {
